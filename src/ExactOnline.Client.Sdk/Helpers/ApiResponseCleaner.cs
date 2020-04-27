@@ -4,11 +4,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web.Script.Serialization;
-
 namespace ExactOnline.Client.Sdk.Helpers
 {
 	/// <summary>
@@ -25,15 +24,16 @@ namespace ExactOnline.Client.Sdk.Helpers
 		/// <returns></returns>
 		public static string GetJsonObject(string response)
 		{
-			var serializer = new JavaScriptSerializer();
-			serializer.RegisterConverters(new JavaScriptConverter[] { new JssDateTimeConverter() });
+			var serializer = new JsonSerializer();
+			serializer.Converters.Add(new JssDateTimeConverter());
 			var oldCulture = Thread.CurrentThread.CurrentCulture;
 			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
 			string output;
 			try
 			{
-				var dict = (Dictionary<string, object>)serializer.Deserialize<object>(response);
+                JsonTextReader reader = new JsonTextReader(new StringReader(response));   
+                var dict = (Dictionary<string, object>)serializer.Deserialize<object>(reader);
 				var d = (Dictionary<string, object>)dict["d"];
 				output = GetJsonFromDictionary(d);
 			}
@@ -46,14 +46,15 @@ namespace ExactOnline.Client.Sdk.Helpers
 
 		public static string GetSkipToken(string response)
 		{
-			var serializer = new JavaScriptSerializer();
-			serializer.RegisterConverters(new JavaScriptConverter[] { new JssDateTimeConverter() });
+			var serializer = new JsonSerializer();
+			serializer.Converters.Add(new JssDateTimeConverter());
 			var oldCulture = Thread.CurrentThread.CurrentCulture;
 			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 			string token = string.Empty;
 			try
 			{
-				var dict = (Dictionary<string, object>)serializer.Deserialize<object>(response);
+                JsonTextReader reader = new JsonTextReader(new StringReader(response));
+                var dict = (Dictionary<string, object>)serializer.Deserialize<object>(reader);
 				var innerPart = dict["d"];
 				if (innerPart.GetType() == typeof(Dictionary<string, object>))
 				{
@@ -86,15 +87,16 @@ namespace ExactOnline.Client.Sdk.Helpers
 		/// </summary>
 		public static string GetJsonArray(string response)
 		{
-			var serializer = new JavaScriptSerializer();
-			serializer.RegisterConverters(new JavaScriptConverter[] { new JssDateTimeConverter() });
+			var serializer = new JsonSerializer();
+			serializer.Converters.Add(new JssDateTimeConverter());
 
 			var oldCulture = Thread.CurrentThread.CurrentCulture;
 			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 			try
 			{
 				ArrayList results;
-				var dict = (Dictionary<string, object>)serializer.Deserialize<object>(response);
+                JsonTextReader reader = new JsonTextReader(new StringReader(response));
+                var dict = (Dictionary<string, object>)serializer.Deserialize<object>(reader);
 				var innerPart = dict["d"];
 				if (innerPart.GetType() == typeof(Dictionary<string, object>))
 				{
