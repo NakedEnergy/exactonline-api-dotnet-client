@@ -2,13 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
 	<metadata>
 		<id>ExactOnline.Client.Sdk-NETStandard</id>
-		<version>3.0.0</version>
+		<version>3.0.6</version>
 		<title>Exact Online Client SDK (Unofficial .NET Standard Port)</title>
 		<authors>Exact, JoshGlue</authors>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>The Exact Online Client SDK provides a rich application framework and simplifies the interconnection with the Exact Online RESTful API</description>
 		<iconUrl>https://avatars0.githubusercontent.com/u/4112611?v=3&amp;s=200</iconUrl>
-		<projectUrl>https://github.com/exactonline/exactonline-api-dotnet-client</projectUrl>
+		<projectUrl>https://github.com/JoshGlue/exactonline-api-dotnet-client</projectUrl>
 		<licenseUrl>https://raw.githubusercontent.com/exactonline/exactonline-api-dotnet-client/master/LICENSE.txt</licenseUrl>
 		<copyright>Exact</copyright>
 		<tags>Exact Online Client SDK</tags>

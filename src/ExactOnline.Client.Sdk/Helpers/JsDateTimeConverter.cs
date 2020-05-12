@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,18 +7,18 @@ using System.Linq;
 
 namespace ExactOnline.Client.Sdk.Helpers
 {
-	/// <summary>
-	/// Custom JavaScriptConverter for parsing datetime value correctly
-	/// </summary>
-	public class JssDateTimeConverter : JsonConverter
-	{
-		public IEnumerable<Type> SupportedTypes
-		{
-			get 
-			{ 
-				return new[] { typeof(Object) }; 
-			}
-		}
+    /// <summary>
+    /// Custom JavaScriptConverter for parsing datetime value correctly
+    /// </summary>
+    public class JssDateTimeConverter : JsonConverter
+    {
+        public IEnumerable<Type> SupportedTypes
+        {
+            get
+            {
+                return new[] { typeof(Object) };
+            }
+        }
 
         public override bool CanConvert(Type objectType) => SupportedTypes.Contains(objectType);
 
@@ -31,38 +32,38 @@ namespace ExactOnline.Client.Sdk.Helpers
                 object entity = dictionary[key];
 
                 // Check if content is a dictionary > send to this method recursively
-                if (entity != null && entity.GetType() == typeof(Dictionary<string, object>))
+                if (entity != null && entity is JObject jObject)
                 {
-                    var value = (Dictionary<string, object>)entity;
-                    Deserialize(value);
+                    var dict = jObject.ToObject<Dictionary<string, object>>();
+                    dictionary[key] = Deserialize(dict);
                 }
-                else
+                // For collection within this collection > send to this method recursively
+                else if (entity != null && entity is JArray jArray)
                 {
-                    var value = entity;
-                    if (value != null)
+                    IEnumerable<JToken> dictionaries = jArray.Where(x => x.Type == JTokenType.Object);
+                    var list = new List<object>();
+                    foreach (var dict in dictionaries)
                     {
-                        // Set EPOCH datetime
-                        Type valueType = value.GetType();
-                        if (valueType == typeof(DateTime))
-                        {
-                            var date = (DateTime)entity;
-                            TimeSpan t = (date - new DateTime(1970, 1, 1));
-                            double timestamp = t.TotalMilliseconds;
-                            dictionary[key] = string.Format("/Date({0})/", timestamp);
-                        }
-
-                        // For collection within this collection > send to this method recursively
-                        if (valueType == typeof(ArrayList))
-                        {
-                            IEnumerable<object> dictionaries = ((ArrayList)value).ToArray().Where(x => x.GetType() == typeof(Dictionary<string, object>));
-
-                            foreach (var dict in dictionaries)
-                            {
-                                Deserialize((Dictionary<string, object>)dict);
-                            }
-                        }
+                        list.Add(Deserialize(dict.ToObject<Dictionary<string, object>>()));
+                    }
+                    dictionary[key] = new ArrayList(list);
+                }
+                else if (entity != null && entity is JToken jToken)
+                {
+                    // Set EPOCH datetime
+                    if (jToken.Type == JTokenType.Date)
+                    {
+                        var date = (DateTime)entity;
+                        TimeSpan t = (date - new DateTime(1970, 1, 1));
+                        double timestamp = t.TotalMilliseconds;
+                        dictionary[key] = string.Format("/Date({0})/", timestamp);
+                    }
+                    else
+                    {
+                        dictionary[key] = jToken.ToObject<Object>();
                     }
                 }
+
             }
             return dictionary;
         }
@@ -70,7 +71,8 @@ namespace ExactOnline.Client.Sdk.Helpers
         //Deserialize
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var dictionary = serializer.Deserialize<Dictionary<string, object>>(reader);
+            var jObject = JObject.Load(reader);
+            var dictionary = jObject.ToObject<Dictionary<string, object>>();
             dictionary = this.Deserialize(dictionary);
             return dictionary;
         }
