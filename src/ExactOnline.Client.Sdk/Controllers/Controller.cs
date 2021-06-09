@@ -403,8 +403,9 @@ namespace ExactOnline.Client.Sdk.Controllers
 		{
 			if (_keyname.Contains(","))
 			{
-				throw new Exception("Currently the SDK doesn't support entities with a compound key.");
-			}
+                string result = string.Join(",", _keyname.Split(',').Select(key => entity.GetType().GetProperty(key).GetValue(entity)?.ToString()));
+                return result;
+            }
 
 			return entity.GetType().GetProperty(_keyname).GetValue(entity).ToString();
 		}
