@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ExactOnline.Client.Models.Current;
 using ExactOnline.Client.Sdk.Delegates;
 using ExactOnline.Client.Sdk.Helpers;
+using ExactOnline.Client.Sdk.Interfaces;
 using ExactOnline.Client.Sdk.Models;
 
 namespace ExactOnline.Client.Sdk.Controllers
@@ -32,10 +33,10 @@ namespace ExactOnline.Client.Sdk.Controllers
         /// <param name="exactOnlineUrl">The Exact Online URL for your country</param>
         /// <param name="division">Division number</param>
         /// <param name="accesstokenDelegate">Delegate that will be executed the access token is expired</param>
-        public ExactOnlineClient(string exactOnlineUrl, int division, AccessTokenManagerDelegate accesstokenDelegate)
+        public ExactOnlineClient(string exactOnlineUrl, int division, AccessTokenManagerDelegate accesstokenDelegate, IExactOnlineThrottler exactOnlineThrottler)
 		{
 			// Set culture for correct deserializing of API Response (comma and points)
-			_apiConnector = new ApiConnector(accesstokenDelegate, this);
+			_apiConnector = new ApiConnector(accesstokenDelegate, exactOnlineThrottler, this);
 			//Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
 			if (!exactOnlineUrl.EndsWith("/")) exactOnlineUrl += "/";
@@ -52,8 +53,8 @@ namespace ExactOnline.Client.Sdk.Controllers
 		/// </summary>
 		/// <param name="exactOnlineUrl">{URI}/</param>
 		/// <param name="accesstokenDelegate">Valid oAuth AccessToken</param>
-		public ExactOnlineClient(string exactOnlineUrl, AccessTokenManagerDelegate accesstokenDelegate)
-			: this(exactOnlineUrl, 0, accesstokenDelegate)
+		public ExactOnlineClient(string exactOnlineUrl, AccessTokenManagerDelegate accesstokenDelegate, IExactOnlineThrottler exactOnlineThrottler)
+			: this(exactOnlineUrl, 0, accesstokenDelegate, exactOnlineThrottler)
 		{
 		}
 

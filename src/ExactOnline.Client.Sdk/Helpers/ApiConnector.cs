@@ -19,19 +19,22 @@ namespace ExactOnline.Client.Sdk.Helpers
 	public class ApiConnector : IApiConnector
 	{
 		private readonly AccessTokenManagerDelegate _accessTokenDelegate;
+        private readonly IExactOnlineThrottler _throttler;
         private readonly ExactOnlineClient _client;
 
-		#region Constructor
+        #region Constructor
 
-		/// <summary>
-		/// Creates new instance of ApiConnector
-		/// </summary>
-		/// <param name="accessTokenDelegate">Valid oAuth Access Token</param>
-		public ApiConnector(AccessTokenManagerDelegate accessTokenDelegate, ExactOnlineClient client)
+        /// <summary>
+        /// Creates new instance of ApiConnector
+        /// </summary>
+        /// <param name="accessTokenDelegate">Valid oAuth Access Token</param>
+        public ApiConnector(AccessTokenManagerDelegate accessTokenDelegate, IExactOnlineThrottler throttler, ExactOnlineClient client)
 		{
             _client = client;
 			if (accessTokenDelegate == null) throw new ArgumentException("accessTokenDelegate");
-			_accessTokenDelegate = accessTokenDelegate;
+            if (throttler == null) throw new ArgumentException(nameof(throttler));
+            _accessTokenDelegate = accessTokenDelegate;
+            _throttler = throttler;
 		}
 
 		#endregion
@@ -362,43 +365,47 @@ namespace ExactOnline.Client.Sdk.Helpers
 
 		private string GetResponse(HttpWebRequest request)
 		{
-			// Grab the response
-			var responseValue = string.Empty;
-
-			Debug.WriteLine("RESPONSE");
-
-            WebResponse response = null;
-
-			// Get response. If this fails: Throw the correct Exception (for testability)
-			try
-			{
-				response = request.GetResponse();
-                
-				using (Stream responseStream = response.GetResponseStream())
-				{
-					if (responseStream != null)
-					{
-						var reader = new StreamReader(responseStream);
-						responseValue = reader.ReadToEnd();
-					}
-				}
-			}
-			catch (WebException ex)
-			{
-                response = ex.Response;
-                ThrowSpecificException(ex);
-
-				throw;
-			}
-            finally
+            lock (_throttler.GetThrottleLock())
             {
-                SetEolResponseHeaders(response);
+			    // Grab the response
+			    var responseValue = string.Empty;
+
+			    Debug.WriteLine("RESPONSE");
+
+                WebResponse response = null;
+
+			    // Get response. If this fails: Throw the correct Exception (for testability)
+			    try
+			    {
+				    response = request.GetResponse();
+                
+				    using (Stream responseStream = response.GetResponseStream())
+				    {
+					    if (responseStream != null)
+					    {
+						    var reader = new StreamReader(responseStream);
+						    responseValue = reader.ReadToEnd();
+					    }
+				    }
+			    }
+			    catch (WebException ex)
+			    {
+                    response = ex.Response;
+                    ThrowSpecificException(ex);
+
+				    throw;
+			    }
+                finally
+                {
+                    SetEolResponseHeaders(response);
+                }
+
+			    Debug.WriteLine(responseValue);
+			    Debug.WriteLine("");
+
+			    return responseValue;
+
             }
-
-			Debug.WriteLine(responseValue);
-			Debug.WriteLine("");
-
-			return responseValue;
         }
 
         private async Task<string> GetResponseAsync(HttpWebRequest request)
@@ -463,8 +470,7 @@ namespace ExactOnline.Client.Sdk.Helpers
                     Reset = response.Headers["X-RateLimit-Reset"].ToNullableLong()
                 }
             };
-
-            
+            _throttler.SetRateLimitHeaders(_client.EolResponseHeader.RateLimit);            
         }
         
         private Stream GetResponseFile(HttpWebRequest request)

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
 	<metadata>
 		<id>ExactOnline.Client.Sdk-NETStandard</id>
-		<version>3.0.9</version>
+		<version>4.0.0</version>
 		<title>Exact Online Client SDK (Unofficial .NET Standard Port)</title>
 		<authors>Exact, JoshGlue</authors>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
