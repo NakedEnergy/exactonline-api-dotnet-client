@@ -14,7 +14,7 @@ namespace ExactOnline.Client.Sdk.Interfaces
         /// Waits till when a next request can be done
         /// </summary>
         /// <returns></returns>
-        object GetThrottleLock();
+        IDisposable GetThrottleLock();
 
         /// <summary>
         /// Sets the rate limit headers

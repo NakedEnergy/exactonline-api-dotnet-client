@@ -9,14 +9,23 @@
     /// </summary>
     public class RateLimit
     {
+
+        /// <summary>
+        /// The maximum number of API calls you're permitted to make per app, per company, per minute.
+        /// </summary>
+        public int? MinutelyLimit { get; set; }
+        /// <summary>
+        /// The number of API calls remaining within the rate limit window of an app and company, per minute.
+        /// </summary>
+        public int? MinutelyRemaining { get; set; }
         /// <summary>
         /// The maximum number of API calls you're permitted to make per app, per company, per 24-hour window.
         /// </summary>
-        public int? Limit { get; set; }
+        public int? DailyLimit { get; set; }
         /// <summary>
-        /// The number of API calls remaining within the rate limit window of an app and company.
+        /// The number of API calls remaining within the rate limit window of an app and company, per 24-hour window.
         /// </summary>
-        public int? Remaining { get; set; }
+        public int? DailyRemaining { get; set; }
         /// <summary>
         /// The time at which the rate limit window resets in UTC epoch seconds.
         /// </summary>

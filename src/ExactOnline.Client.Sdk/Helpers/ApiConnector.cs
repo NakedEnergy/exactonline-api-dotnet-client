@@ -365,7 +365,7 @@ namespace ExactOnline.Client.Sdk.Helpers
 
 		private string GetResponse(HttpWebRequest request)
 		{
-            lock (_throttler.GetThrottleLock())
+            using (_throttler.GetThrottleLock())
             {
 			    // Grab the response
 			    var responseValue = string.Empty;
@@ -465,8 +465,10 @@ namespace ExactOnline.Client.Sdk.Helpers
             {
                 RateLimit = new Models.RateLimit
                 {
-                    Limit = response.Headers["X-RateLimit-Limit"].ToNullableInt(),
-                    Remaining = response.Headers["X-RateLimit-Remaining"].ToNullableInt(),
+                    DailyLimit = response.Headers["X-RateLimit-Limit"].ToNullableInt(),
+                    DailyRemaining = response.Headers["X-RateLimit-Remaining"].ToNullableInt(),
+                    MinutelyLimit = response.Headers["X-RateLimit-Minutely-Limit"].ToNullableInt(),
+                    MinutelyRemaining = response.Headers["X-RateLimit-Minutely-Remaining"].ToNullableInt(),
                     Reset = response.Headers["X-RateLimit-Reset"].ToNullableLong()
                 }
             };
